@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en"> 
+	<head>
+		<meta charset="UTF-8" />
+                <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+                <meta http-equiv="Pragma" content="no-cache" />
+                <meta http-equiv="Expires" content="0" />
+
+		<title>r/place clone</title>
+
+		<script src="jquery-3.1.1.min.js"></script>
+		<script type="text/javascript">
+	
+			var socket;
+			const colourfield = [[255,255,255],[0,0,0],[128,128,128],[255,0,0],[255,51,153],[255,102,0],[255,255,0],
+			[0,153,0],[0,255,255],[0,102,204],[0,0,153],[153,51,255],[204, 153, 255],[0,255,204],[128,0,0],[255,247,230]];
+
+			$(function(){
+				// socket = new WebSocket("ws://cslinux.utm.utoronto.ca:8001");
+				// socket = new WebSocket("ws://localhost:8001");
+				socket = new WebSocket("ws://"+window.location.hostname+":8081");
+				socket.onopen = function (event) {
+					$('#sendButton').removeAttr('disabled');
+					console.log("connected");
+				};
+				socket.onclose = function (event) {
+					alert("closed code:" + event.code + " reason:" +event.reason + " wasClean:"+event.wasClean);
+				};
+				socket.onmessage = function (event) {
+				if(JSON.parse(event.data)['x']!=undefined){
+					var o=JSON.parse(event.data);
+					
+					var context = document.getElementById('canvas').getContext('2d');
+					context.fillStyle = 'rgb('+ String(colourfield[o.colour][0]) + ',' + String(colourfield[o.colour][1]) + ',' + String(colourfield[o.colour][2]) + ')';
+		   			context.fillRect(o.x, o.y, 1, 1);
+				}else{
+				var can = JSON.parse(event.data);
+				
+				for(var y=0;y<1000;y++){
+					for(var x=0;x<1000;x++){
+						var bits = can.data[(x*4 + 4000*y)/8];
+						var context = document.getElementById('canvas').getContext('2d');
+						context.fillStyle = 'rgb('+ String(colourfield[(bits>>4) & 15][0]) + ',' + String(colourfield[(bits>>4) & 15][1]) + ',' + String(colourfield[(bits>>4) & 15][2]) + ')';
+						context.fillRect(x, y, 1, 1);
+					}
+				}
+				
+				}
+				}
+				// Comment out the event handler below when in production
+				/*$('#canvas').mousemove(function(event){
+					var x=event.pageX-this.offsetLeft;
+					var y=event.pageY-this.offsetTop;
+					var o = { 'x': x, 'y': y, 'r': 0, 'g':0, 'b':0 };
+					socket.send(JSON.stringify(o));
+				});
+				*/
+				$('#setForm').submit(function( event ) {
+					var o = {'username': $('#username').val(), 
+						'x': $('#x').val(), 
+						'y': $('#y').val(), 
+						'colour': $('#colour').val()
+					};
+
+					for(var key in o){
+						if(key != 'username') {
+							o[key]=parseInt(o[key]);
+						}
+					}
+					socket.send(JSON.stringify(o));
+  					event.preventDefault();
+				});
+			});
+		</script>
+		<style>
+                        body {
+                                text-align: center;
+                                align: center;
+                                
+                                margin: 0px;
+                                padding: 0px;
+                        }
+                        canvas {
+				outline: 1px solid red;
+                                
+                        }
+                        input[type=number]{ width: 3em; }
+                </style>
+	</head>
+	<body>
+		<h1>r/place clone</h1>
+
+		<canvas id="canvas" width="1000" height="1000" ></canvas>
+		<form id="setForm">
+			(<input type="string" id="username" placeholder="insert name">)
+			&nbsp;
+                        (<input type="number" id="x" placeholder="x" min="0" max="1000">,
+                        <input type="number" id="y" placeholder="y" min="0" max="1000">)
+                        &nbsp; &nbsp; &nbsp;
+                        (<select id="colour">
+                            <option value="0">White</option>
+                            <option value="1">Black</option>
+                            <option value="2">Grey</option>
+                            <option value="3">Red</option>
+                            <option value="4">Pink</option>
+                            <option value="5">Orange</option>
+                            <option value="6">Yellow</option>
+                            <option value="7">Green</option>
+                            <option value="8">BabyBlue</option>
+                            <option value="9">Blue</option>
+                            <option value="10">DarkBlue</option>
+                            <option value="11">Purple</option>
+                            <option value="12">Violet</option>
+                            <option value="13">Cyan</option>
+                            <option value="14">Maroon</option>
+                            <option value="15">Beige</option>
+
+                        </select>)
+                        &nbsp;
+                        <input type="submit" name="set" value="set"/>
+                </form>
+	</body>
+</html>
+
