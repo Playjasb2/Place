@@ -6,8 +6,8 @@ var AWS = require("aws-sdk");
 AWS.config.update({
   region: "ca-central-1",
   endpoint: "https://dynamodb.ca-central-1.amazonaws.com",
-  accessKeyId: "AKIAIYXCGWSFABXPLNKA",
-  secretAccessKey: "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"
+  accessKeyId: "",
+  secretAccessKey: ""
 });
 
 const redis = require('redis'); // used for redis
